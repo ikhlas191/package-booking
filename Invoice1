@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>EZ Transport Rental - Sistem Penjanaan Invois</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #e2e8f0;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 30px 20px;
+            color: #1e293b;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Layout dua lajur */
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .form-section {
+            flex: 1.2;
+            min-width: 320px;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.1);
+            padding: 24px 28px;
+            height: fit-content;
+            position: sticky;
+            top: 20px;
+        }
+
+        .invoice-preview {
+            flex: 2;
+            min-width: 480px;
+            background: #fefefe;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.15);
+            padding: 20px 25px;
+            transition: all 0.2s;
+        }
+
+        h2 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 18px;
+            border-left: 6px solid #f97316;
+            padding-left: 16px;
+            color: #0f172a;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #334155;
+            letter-spacing: 0.3px;
+        }
+
+        input, textarea, select {
+            padding: 10px 14px;
+            border: 1.5px solid #cbd5e1;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            font-family: inherit;
+            background: #fafcff;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249,115,22,0.2);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .row-2cols {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .row-2cols > div {
+            flex: 1;
+        }
+
+        button {
+            background: #f97316;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 40px;
+            width: 100%;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: 0.2s;
+            box-shadow: 0 5px 12px rgba(249,115,22,0.3);
+        }
+
+        button:hover {
+            background: #ea580c;
+            transform: translateY(-1px);
+        }
+
+        .reset-btn {
+            background: #334155;
+            box-shadow: none;
+            margin-top: 10px;
+        }
+        .reset-btn:hover {
+            background: #1e293b;
+        }
+
+        /* Gaya Invois (serupa dengan dokumen asal) */
+        .invoice-card {
+            background: white;
+            font-family: 'Segoe UI', 'Inter', system-ui;
+            color: #0a0c10;
+            line-height: 1.45;
+        }
+
+        .inv-header {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .logo-area h3 {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: #f97316;
+            letter-spacing: -0.5px;
+        }
+        .logo-area p {
+            font-size: 0.7rem;
+            color: #475569;
+        }
+        .inv-number h4 {
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .info-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 20px;
+            background: #f8fafc;
+            padding: 16px;
+            border-radius: 20px;
+            margin-bottom: 24px;
+        }
+        .bill-to, .trip-meta {
+            font-size: 0.85rem;
+        }
+        .bill-to strong, .trip-meta strong {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 0.85rem;
+            color: #f97316;
+        }
+
+        table.invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 18px 0;
+            font-size: 0.85rem;
+        }
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #cbd5e1;
+            padding: 12px 10px;
+            text-align: left;
+            vertical-align: top;
+        }
+        .invoice-table th {
+            background: #f1f5f9;
+            font-weight: 700;
+        }
+        .total-row {
+            font-weight: 800;
+            background: #fef9c3;
+        }
+
+        .terms {
+            font-size: 0.7rem;
+            margin-top: 24px;
+            padding-top: 16px;
+            border-top: 1px dashed #cbd5e1;
+            color: #334155;
+        }
+        .payment-method {
+            background: #f1f5f9;
+            padding: 14px;
+            border-radius: 18px;
+            font-size: 0.75rem;
+            margin: 20px 0;
+        }
+        .footer-note {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 18px;
+            color: #475569;
+        }
+        .badge-fuel {
+            background: #fee2e2;
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-size: 0.7rem;
+        }
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+                margin: 0;
+            }
+            .form-section, button, .reset-btn, .dashboard > div:first-child {
+                display: none;
+            }
+            .invoice-preview {
+                box-shadow: none;
+                padding: 0;
+                min-width: 100%;
+            }
+            .container {
+                max-width: 100%;
+            }
+        }
+        .note-help {
+            font-size: 0.7rem;
+            color: #f97316;
+            margin-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="dashboard">
+        <!-- BORANG : Maklumat boleh ubah -->
+        <div class="form-section">
+            <h2>✍️ Isi Maklumat Invois</h2>
+            <form id="invoiceForm">
+                <div class="form-group">
+                    <label>📄 No. Invois / No. Quotation (cth: KL645694)</label>
+                    <input type="text" id="invNumber" value="KL645694" placeholder="KL645694">
+                </div>
+                <div class="form-group">
+                    <label>🏢 Nama Syarikat / Pelanggan</label>
+                    <input type="text" id="companyName" value="Universiti Telekom" placeholder="Universiti Telekom">
+                </div>
+                <div class="form-group">
+                    <label>📍 Alamat Pelanggan (full)</label>
+                    <textarea rows="2" id="companyAddress">Universiti Telekom Sdn Bhd, Account Payable, Finance Division, Multimedia University, Persiaran Multimedia, 63100 Cyberjaya, Malaysia</textarea>
+                </div>
+                <div class="row-2cols">
+                    <div class="form-group">
+                        <label>👤 Nama PIC</label>
+                        <input type="text" id="picName" value="Bukhary">
+                    </div>
+                    <div class="form-group">
+                        <label>📞 No Telefon PIC</label>
+                        <input type="text" id="picPhone" value="0123413540">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>📧 Emel Pelanggan</label>
+                    <input type="email" id="picEmail" value="bukharymuhammad2969@gmail.com">
+                </div>
+                <div class="form-group">
+                    <label>📅 Tarikh Perjalanan (Trip Date)</label>
+                    <input type="text" id="tripDate" value="29 June 2026">
+                </div>
+                <div class="form-group">
+                    <label>🚌 Bilangan Penumpang</label>
+                    <input type="number" id="passengerQty" value="31">
+                </div>
+                <div class="form-group">
+                    <label>📝 Itinerary / Rute (cth: MMU ke BlackBerry CCOE)</label>
+                    <input type="text" id="itineraryText" value="Multimedia University (MMU) - BlackBerry CCOE">
+                </div>
+                <div class="form-group">
+                    <label>⏰ Butiran Masa (Pickup & Return)</label>
+                    <input type="text" id="timeDetails" value="Pickup 8.30am (going), Return 12.30pm | Trip 9.00am - 12.30pm">
+                </div>
+                <div class="row-2cols">
+                    <div class="form-group">
+                        <label>💰 Harga Bus (RM)</label>
+                        <input type="number" id="busPrice" value="800" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>👨‍🏫 Harga Tour Guide (RM)</label>
+                        <input type="number" id="tourGuidePrice" value="300" step="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>⛽ Fuel Surcharge Fee (%)</label>
+                    <input type="number" id="fuelSurchargePercent" value="10" step="1"> 
+                    <small>% dari jumlah (Bus+Tour Guide) — ditunjukkan dalam invois</small>
+                </div>
+                <div class="form-group">
+                    <label>📝 Catatan / Remarks (optional)</label>
+                    <input type="text" id="remarksNote" value="Price quoted based on current diesel price RM4.87/litre">
+                </div>
+                <button type="button" id="generateBtn">📑 Jana Invois Sekarang</button>
+                <button type="button" id="resetDefaultBtn" class="reset-btn">⟳ Tetapkan Semula ke Contoh Asal</button>
+            </form>
+            <div class="note-help">
+                Tip: Selepas jana, anda boleh tekan Ctrl+P untuk cetak / simpan PDF.
+            </div>
+        </div>
+
+        <!-- PRAPAPAR INVOIS (akan diupdate) -->
+        <div class="invoice-preview" id="invoicePreviewArea">
+            <div class="invoice-card" id="invoiceContainer">
+                <!-- Kandungan invois akan dijana oleh javascript -->
+                <div style="text-align:center; padding: 40px;">⏳ Sedang memuatkan data ... klik "Jana Invois"</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Fungsi untuk menghasilkan invois berdasarkan input pengguna
+    function generateInvoice() {
+        // Ambil nilai dari form
+        let invNumber = document.getElementById('invNumber').value.trim();
+        if (invNumber === "") invNumber = "KL" + Math.floor(Math.random() * 900000);
+        
+        let companyName = document.getElementById('companyName').value.trim() || "Universiti Telekom";
+        let companyAddress = document.getElementById('companyAddress').value.trim() || "Universiti Telekom Sdn Bhd, Finance Division, Cyberjaya";
+        let picName = document.getElementById('picName').value.trim() || "Bukhary";
+        let picPhone = document.getElementById('picPhone').value.trim() || "0123413540";
+        let picEmail = document.getElementById('picEmail').value.trim() || "bukharymuhammad2969@gmail.com";
+        let tripDate = document.getElementById('tripDate').value.trim() || "29 June 2026";
+        let passengerQty = document.getElementById('passengerQty').value;
+        let itineraryText = document.getElementById('itineraryText').value.trim() || "Multimedia University (MMU) - BlackBerry CCOE";
+        let timeDetails = document.getElementById('timeDetails').value.trim() || "Pickup 8.30am (going) & 12.30pm return, Trip 9am - 12.30pm";
+        let busPrice = parseFloat(document.getElementById('busPrice').value);
+        if (isNaN(busPrice)) busPrice = 800;
+        let tourGuidePrice = parseFloat(document.getElementById('tourGuidePrice').value);
+        if (isNaN(tourGuidePrice)) tourGuidePrice = 300;
+        let fuelPercent = parseFloat(document.getElementById('fuelSurchargePercent').value);
+        if (isNaN(fuelPercent)) fuelPercent = 10;
+        let remarksNote = document.getElementById('remarksNote').value.trim() || "Price quoted based on current diesel price RM4.87/litre";
+
+        // Kiraan amaun
+        let subTotal = busPrice + tourGuidePrice;
+        let fuelCharge = (subTotal * fuelPercent) / 100;
+        let totalAmount = subTotal + fuelCharge;
+        
+        // Tarikh hari ini untuk invois
+        let today = new Date();
+        let dateStr = today.toLocaleDateString('en-MY', { year: 'numeric', month: '2-digit', day: '2-digit' }).replace(/\//g, '.');
+        let dueDate = "7 days from invoice date"; // ikut biasa
+        
+        // Dapatkan tarikh perjalanan, jumlah pax
+        let paxDisplay = passengerQty || "31";
+        
+        // Susun barangan untuk jadual (ikut gaya invoice asal)
+        // Description row: Bus 40/44s , Tour Guide Fee, Fuel Surcharge
+        let rows = [];
+        rows.push({
+            desc: `Transportation Fees : Bus 40/44s (${paxDisplay} pax)`,
+            remarks: `${itineraryText} (Round trip)`,
+            priceRM: busPrice,
+            amount: busPrice
+        });
+        rows.push({
+            desc: `Tour Guide Fee (1 Person)`,
+            remarks: `Service throughout itinerary: ${timeDetails.substring(0,80)}`,
+            priceRM: tourGuidePrice,
+            amount: tourGuidePrice
+        });
+        if (fuelCharge > 0) {
+            rows.push({
+                desc: `${fuelPercent}% Fuel Surcharge Fee (based on diesel price)`,
+                remarks: `Current fuel price RM4.87/litre`,
+                priceRM: `(${fuelPercent}%)`,
+                amount: fuelCharge
+            });
+        }
+        
+        // Generate HTML table rows
+        let tableRows = '';
+        rows.forEach(row => {
+            tableRows += `
+                <tr>
+                    <td style="width:35%">${row.desc}</td>
+                    <td style="width:35%">${row.remarks}</td>
+                    <td style="width:15%; text-align:right">${typeof row.priceRM === 'number' ? 'RM ' + row.priceRM.toFixed(2) : row.priceRM}</td>
+                    <td style="width:15%; text-align:right">RM ${row.amount.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+        // Tambah baris total
+        tableRows += `
+            <tr class="total-row">
+                <td colspan="3" style="text-align:right; font-weight:800;">TOTAL (RM)</td>
+                <td style="text-align:right; font-weight:800;">RM ${totalAmount.toFixed(2)}</td>
+            </tr>
+        `;
+        
+        // BUTIRAN info perjalanan dan pelanggan mengikut format asal
+        let htmlContent = `
+            <div class="invoice-card">
+                <div class="inv-header">
+                    <div class="logo-area">
+                        <h3>EZTRANSPORTRENTAL.COM.MY</h3>
+                        <p>PW23-1 ONE MONT KIARA, NO 1 JALAN KIARA 50480 KUALA LUMPUR</p>
+                        <p>Hotline: +60390782003 | Email: customer.care@vanbusrental-malaysia.com</p>
+                    </div>
+                    <div class="inv-number">
+                        <h4>INVOICE NO: ${invNumber}</h4>
+                        <p>Tarikh: ${dateStr}</p>
+                        <p>Due Date: ${dueDate}</p>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="bill-to">
+                        <strong>BILL TO (PELANGGAN):</strong>
+                        ${companyName}<br>
+                        ${companyAddress.replace(/\n/g, '<br>')}<br>
+                        Attn: ${picName} (PIC)<br>
+                        Tel: ${picPhone} | Email: ${picEmail}
+                    </div>
+                    <div class="trip-meta">
+                        <strong>TRIP DETAILS</strong>
+                        Trip Date: ${tripDate}<br>
+                        Pax: ${paxDisplay}<br>
+                        Route: ${itineraryText}<br>
+                        Itinerary: ${timeDetails}<br>
+                        <span class="badge-fuel">Diesel price: RM4.87/litre (Peninsular MY)</span>
+                    </div>
+                </div>
+
+                <table class="invoice-table">
+                    <thead>
+                        <tr><th>Description</th><th>Remarks / Destination</th><th>Unit Price (RM)</th><th>Amount (RM)</th></tr>
+                    </thead>
+                    <tbody>
+                        ${tableRows}
+                    </tbody>
+                </table>
+                
+                <div class="payment-method">
+                    <strong>💳 PAYMENT METHOD (Sila pilih):</strong><br>
+                    ▪ Local / Malaysian Bank Transfer (Maybank: 562209621636 - IKHLAS NINETEEN RESOURCES)<br>
+                    ▪ Credit Card via PayPal (6% fee) : <a href="#">https://www.paypal.com/ncp/payment/54NLUWCOJXG2L</a><br>
+                    ▪ Wise Transfer / International Bank Transfer (Swift: MBBEMYKL)<br>
+                    ✅ Booking due date: Slot is subject to availability. 100% nonrefundable deposit for confirmation.
+                </div>
+                
+                <div class="terms">
+                    <strong>✍️ TERMS & CONDITIONS (RINGKASAN):</strong><br>
+                    1️⃣ Harga termasuk: Driver, Bus 40/44s, Toll, SST 6%, minyak ikut kadar semasa.<br>
+                    2️⃣ Harga TIDAK termasuk: Driver's Tips (RM50-RM100 disarankan), Entrance Fee, Accommodation driver.<br>
+                    3️⃣ Extra hour: RM100/jam. Strictly follow itinerary. Customer liable for any damage / cleaning.<br>
+                    4️⃣ Cancellation within 15 days of travel: 50% of total price. Amendment must be in writing.<br>
+                    5️⃣ Kami berhak menukar itinerary tanpa notis jika perlu. Lain-lain rujuk term penuh.<br>
+                    <span style="display:inline-block; margin-top:8px;">📍 * PLEASE HAND OVER DRIVER'S TIPS DIRECTLY TO THE DRIVER. THANK YOU *</span>
+                </div>
+                
+                <div class="footer-note">
+                    📢 Remarks: ${remarksNote} <br>
+                    Wholly Owned By Ikhlas Nineteen Resources (001561921-K) | Office : +60390782003<br>
+                    <strong>Ini adalah invois rasmi. Sila simpan untuk rekod. Penghantaran & perkhidmatan mengikut jadual.</strong>
+                </div>
+            </div>
+        `;
+        
+        // masukkan ke dalam container preview
+        document.getElementById('invoiceContainer').innerHTML = htmlContent;
+    }
+    
+    // Fungsi set semula ke data asal berdasarkan contoh PDF (Universiti Telekom)
+    function resetToOriginal() {
+        document.getElementById('invNumber').value = "KL645694";
+        document.getElementById('companyName').value = "Universiti Telekom";
+        document.getElementById('companyAddress').value = "Universiti Telekom Sdn Bhd, Account Payable, Finance Division, Multimedia University, Persiaran Multimedia, 63100 Cyberjaya, Malaysia";
+        document.getElementById('picName').value = "Bukhary";
+        document.getElementById('picPhone').value = "0123413540";
+        document.getElementById('picEmail').value = "bukharymuhammad2969@gmail.com";
+        document.getElementById('tripDate').value = "29 June 2026";
+        document.getElementById('passengerQty').value = "31";
+        document.getElementById('itineraryText').value = "Multimedia University (MMU) - BlackBerry CCOE";
+        document.getElementById('timeDetails').value = "Pickup 8.30am (going), Return 12.30pm | Trip 9.00am to 12.30pm";
+        document.getElementById('busPrice').value = "800";
+        document.getElementById('tourGuidePrice').value = "300";
+        document.getElementById('fuelSurchargePercent').value = "10";
+        document.getElementById('remarksNote').value = "Price quoted based on current diesel price RM4.87/litre (Peninsular Malaysia, effective 20 May 2026). Price may be subject to revision if fuel price changes.";
+        generateInvoice(); // jana semula
+    }
+    
+    // Event Listeners
+    document.getElementById('generateBtn').addEventListener('click', generateInvoice);
+    document.getElementById('resetDefaultBtn').addEventListener('click', resetToOriginal);
+    
+    // Muat turun awal contoh berdasarkan nilai semasa (contoh dari PDF)
+    window.addEventListener('DOMContentLoaded', () => {
+        // set nilai lalai dari invois yang diberi (seperti fail Universiti Telekom)
+        resetToOriginal();
+    });
+    
+    // Tambahan: bila apa-apa input berubah, pengguna perlu klik "jana", jadi kita tak auto update untuk elak beban
+    // tetapi sedia ada button jana dan reset
+</script>
+</body>
+</html>
